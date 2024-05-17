@@ -5,7 +5,7 @@ import { errorHandler } from "../utils/error.js";
 
 export const signupUser = async (req, res, next) => {
     const { username, email, password } = req.body;
-    console.log("Password:", password); // Log the value of password
+
     if (
         !username ||
         !email ||
@@ -63,7 +63,10 @@ export const loginUser = async (req, res, next) => {
 
         const { password: pass, ...rest } = validUser._doc;
 
-        const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+        const token = jwt.sign(
+            { id: validUser._id, isAdmin: validUser.isAdmin },
+            process.env.JWT_SECRET
+        );
 
         res.status(200)
             .cookie("access-token", token, { httpOnly: true })
@@ -78,13 +81,16 @@ export const googleAuth = async (req, res, next) => {
     try {
         const user = await User.findOne({ email });
         if (user) {
-            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+            const token = jwt.sign(
+                { id: user._id, isAdmin: user.isAdmin },
+                process.env.JWT_SECRET
+            );
             const { password, ...rest } = user._doc;
             res.status(200)
                 .cookie("access-token", token, {
                     httpOnly: true,
                 })
-                .json(rest);
+                .json({ message: "Signin Successful", user: rest });
         } else {
             const generatedpassword =
                 Math.random().toString(36).slice(-8) +
@@ -102,7 +108,10 @@ export const googleAuth = async (req, res, next) => {
             });
             await newUser.save();
 
-            const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+            const token = jwt.sign(
+                { id: newUser._id, isAdmin: newUser.isAdmin },
+                process.env.JWT_SECRET
+            );
             const { password, ...rest } = newUser._doc;
             res.status(200)
                 .cookie("access-token", token, { httpOnly: true })

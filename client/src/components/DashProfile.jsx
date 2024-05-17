@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Alert, Button, Modal, TextInput } from "flowbite-react";
+import { Link } from "react-router-dom";
 import {
 	getDownloadURL,
 	getStorage,
@@ -18,6 +19,7 @@ import {
 	deleteUserStart,
 	deleteUserSuccess,
 	deleteUserFailure,
+	signOutSuccess,
 } from "../redux/user/userSlice";
 
 export const DashProfile = () => {
@@ -76,6 +78,7 @@ export const DashProfile = () => {
 			},
 			() => {
 				getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+					setImageFileUploadProgress(null);
 					setImageFileUrl(downloadURL);
 					setFormData({ ...formData, profilePicture: downloadURL });
 					setImageFileUploading(false);
@@ -87,7 +90,6 @@ export const DashProfile = () => {
 	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.id]: e.target.value });
 	};
-	console.log("current-user", currentUser.user);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -152,6 +154,25 @@ export const DashProfile = () => {
 			dispatch(deleteUserFailure(error.message));
 		}
 	};
+
+	const handleSignOut = async () => {
+		try {
+			const res = await fetch(`/api/user/signout`, {
+				method: "POST",
+			});
+
+			const data = await res.json();
+
+			if (!res.ok) {
+				console.log(data.message);
+			} else {
+				dispatch(signOutSuccess());
+			}
+		} catch (error) {
+			console.log(error.message);
+		}
+	};
+	console.log("current-user", currentUser.user);
 
 	return (
 		<div className="max-w-lg mx-auto p-3 w-full">
@@ -233,6 +254,18 @@ export const DashProfile = () => {
 				>
 					{loading ? "Loading..." : "Update"}
 				</Button>
+
+				{currentUser.user?.isAdmin && (
+					<Link to={"/create-post"}>
+						<Button
+							type="button"
+							gradientDuoTone="purpleToPink"
+							className="w-full"
+						>
+							Create a post
+						</Button>
+					</Link>
+				)}
 			</form>
 			<div className="flex justify-between mt-5 text-red-500">
 				<span
@@ -241,7 +274,9 @@ export const DashProfile = () => {
 				>
 					Delete Account
 				</span>
-				<span className="cursor-pointer">Sign Out</span>
+				<span className="cursor-pointer" onClick={handleSignOut}>
+					Sign Out
+				</span>
 			</div>
 			{updateUserSuccess && (
 				<Alert color="success" className="mt-5">
