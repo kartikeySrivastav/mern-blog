@@ -172,7 +172,6 @@ export const DashProfile = () => {
 			console.log(error.message);
 		}
 	};
-	console.log("current-user", currentUser.user);
 
 	return (
 		<div className="max-w-lg mx-auto p-3 w-full">

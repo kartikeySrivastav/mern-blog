@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Dropdown, Navbar, TextInput, Avatar } from "flowbite-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineSearch } from "react-icons/ai";
@@ -14,6 +14,23 @@ const Header = () => {
 	const dispatch = useDispatch();
 	const { currentUser } = useSelector((state) => state.user);
 	const { theme } = useSelector((state) => state.theme);
+	const [searchTerm, setSearchTerm] = useState("");
+
+	useEffect(() => {
+		const urlParams = new URLSearchParams(location.search);
+		const searchTermFromUrl = urlParams.get("searchTerm");
+		if (searchTermFromUrl) {
+			setSearchTerm(searchTermFromUrl);
+		}
+	}, [location.search]);
+
+	const handleSearchSubmit = (e) => {
+		e.preventDefault();
+		const urlParams = new URLSearchParams(location.search);
+		urlParams.set("searchTerm", searchTerm);
+		const searchQuery = urlParams.toString();
+		navigate(`/search/${searchQuery}`);
+	};
 
 	const handleSignOut = async () => {
 		try {
@@ -45,12 +62,14 @@ const Header = () => {
 					</span>
 					Blog
 				</Link>
-				<form>
+				<form onSubmit={handleSearchSubmit}>
 					<TextInput
 						type="text"
 						placeholder="Search..."
 						rightIcon={AiOutlineSearch}
 						className="hidden lg:inline-block"
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
 					/>
 				</form>
 				<Button className="w-12 h-10 lg:hidden" color="gray" pill>
